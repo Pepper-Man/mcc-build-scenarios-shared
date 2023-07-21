@@ -1,6 +1,6 @@
 # mcc-build-scenarios-shared
-Python script for zipping all tags referenced by scenarios, for easy sharing.
-Supports all MCC titles except CE
+Python script for streamlining the process of building maps with shared resources.
+Currently supports H3 and H4, with more support on the way.
 
 # Requirements
 [Python](https://www.python.org/) - preferably 3.10.6 or newer, older versions not tested
