@@ -142,7 +142,8 @@ def h3(scenarios_list):
     language_map_src = os.path.join(maps_folder, f"{LANGUAGE}.map")
 
     shutil.copy2(shared_map_src, os.path.join(dest_folder, "shared.map"))
-    shutil.copy2(campaign_map_src, os.path.join(dest_folder, "campaign.map"))
+    if os.path.exists(campaign_map_src):
+        shutil.copy2(campaign_map_src, os.path.join(dest_folder, "campaign.map"))
 
     if os.path.exists(language_map_src):
         shutil.copy2(language_map_src, os.path.join(
@@ -211,7 +212,8 @@ def h4(selected_scens):
         
     # Copy maps
     shutil.copy(os.path.join(h4ek_path, "maps", "shared.map"), os.path.join(h4ek_path, "cache_builder", "to_optimize"))
-    shutil.copy(os.path.join(h4ek_path, "maps", "campaign.map"), os.path.join(h4ek_path, "cache_builder", "to_optimize"))
+    if os.path.exists(os.path.join(h4ek_path, "maps", "campaign.map")):
+        shutil.copy(os.path.join(h4ek_path, "maps", "campaign.map"), os.path.join(h4ek_path, "cache_builder", "to_optimize"))
     
     # Remove old dvd_prop_list
     dvd_prop_list = os.path.join(h4ek_path, "built_dvd_prop_list.txt")
