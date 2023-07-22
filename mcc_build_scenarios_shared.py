@@ -473,7 +473,7 @@ def main():
 
     # Information header
     header_font = font.Font(size=10, weight='bold')
-    info_label = tk.Label(window, text='Currently Supported: H3, H4\nPlanned: H2, ODST, Reach', font=header_font)
+    info_label = tk.Label(window, text='Currently Supported: H3, ODST, H4\nPlanned: H2, Reach', font=header_font)
     info_label.grid(row=0, column=1, padx=5, pady=5)
 
     # Get engine version
