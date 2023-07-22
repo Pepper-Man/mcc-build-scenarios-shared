@@ -26,23 +26,6 @@ def run_executable_in_another_directory(executable_path, arguments):
 #-------------------------------------- GLOBAL FUNCTIONS END ------------------------------------
 
 #-------------------------------------- HALO 3 BEGIN --------------------------------------------
-def check_process_exit(process, wait_time_minutes):
-    exit_code = 0
-    timeout_seconds = wait_time_minutes * 60
-
-    try:
-        # Wait for the process to finish, but apply a timeout
-        process.wait(timeout=timeout_seconds)
-        exit_code = process.returncode
-    except subprocess.TimeoutExpired:
-        print("Timed out waiting for process completion")
-        process.terminate()
-        exit_code = 1
-
-    process.kill()
-
-    if exit_code != 0:
-        exit(exit_code)
 
 def h3(scenarios_list):
     tool_exe = os.path.join(h3ek_path, "tool.exe")
@@ -87,7 +70,6 @@ def h3(scenarios_list):
         else:
             argument_list = ["build-cache-file-cache-sounds-index", map, target_platform]
             run_executable_in_another_directory(tool_exe, argument_list)
-        #check_process_exit(process, 30)
 
     # 4 Build sound cache files
     print("Build sound cache files")
@@ -97,19 +79,16 @@ def h3(scenarios_list):
     for language_file in language_files:
         argument_list = ["build-cache-file-cache-sounds", target_platform, language_file, VERSION, USE_FMOD_DATA, DEDICATED_SERVER]
         run_executable_in_another_directory(tool_exe, argument_list)
-        #check_process_exit(process, 30)
 
     # 5 - Generate full shared.map
     print("Generate full shared.map")
     argument_list = ["build-cache-file-cache-shared-first", target_platform, LANGUAGE, VERSION, "optimizable", SHARED_SOUNDS, USE_FMOD_DATA, DEDICATED_SERVER]
     run_executable_in_another_directory(tool_exe, argument_list)
-    #check_process_exit(process, 30)
 
     # 6 - Generate full campaign.map
     print("Generate full campaign.map")
     argument_list = ["build-cache-file-cache-campaign-second", target_platform, LANGUAGE, VERSION, "optimizable", USE_FMOD_DATA, DEDICATED_SERVER]
     run_executable_in_another_directory(tool_exe, argument_list)
-    #check_process_exit(process, 30)
 
     # 7 - Generate intermediate files for levels
     print("Generate intermediate files for levels")
@@ -120,7 +99,6 @@ def h3(scenarios_list):
         if os.path.exists(scenario_relative_path):
             argument_list = ["build-cache-file-language-version-optimizable-use-sharing", LANGUAGE, VERSION, map, target_platform, SHARED_SOUNDS, USE_FMOD_DATA, DEDICATED_SERVER]
             run_executable_in_another_directory(tool_exe, argument_list)
-            #check_process_exit(process, 90)
         else:
             print(f"Missing {scenario_relative_path}")
 
@@ -153,7 +131,6 @@ def h3(scenarios_list):
     print("Generate shared intermediate files")
     argument_list = ["generate-final-shared-layout", dvd_prop_list, target_platform, DEDICATED_SERVER]
     run_executable_in_another_directory(tool_exe, argument_list)
-    #check_process_exit(process, 30)
 
     # 11 - Generate optimized level cache files
     print("Generate optimized level cache files")
@@ -163,7 +140,6 @@ def h3(scenarios_list):
         if os.path.exists(scenario_relative_path):
             argument_list = ["build-cache-file-generate-new-layout", map, target_platform, USE_FMOD_DATA, DEDICATED_SERVER]
             run_executable_in_another_directory(tool_exe, argument_list)
-            #check_process_exit(process, 90)
         else:
             print(f"Missing {scenario_relative_path}")
 
@@ -171,13 +147,11 @@ def h3(scenarios_list):
     print("Generate optimized shared.map")
     argument_list = ["build-cache-file-link", "shared", target_platform, USE_FMOD_DATA, DEDICATED_SERVER]
     run_executable_in_another_directory(tool_exe, argument_list)
-    #check_process_exit(process, 5)
 
     # 13 - Generate optimized campaign.map
     print("Generate optimized campaign.map")
     argument_list = ["build-cache-file-link", "campaign", target_platform, USE_FMOD_DATA, DEDICATED_SERVER]
     run_executable_in_another_directory(tool_exe, argument_list)
-    #check_process_exit(process, 5)
 
     print("\n\nFinished successfully. Built map files are in \"H3EK\\maps\"")
     messagebox.showinfo("Success", "Finished successfully. Built map files are in \"H3EK\\maps\"")
@@ -368,7 +342,7 @@ def main():
     selected_engine.set("Halo 3") # Default to H3
     folder_label = tk.Label(window, text='Select engine version:')
     folder_label.grid(row=2, column=1, padx=5, pady=5)
-    ek_entry = ttk.Combobox(window, textvariable=selected_engine, values=["Halo 3", "Halo 4"], state="readonly")
+    ek_entry = ttk.Combobox(window, textvariable=selected_engine, values=["Halo 3", "Halo 3: ODST", "Halo 4"], state="readonly")
     ek_entry.grid(row=3, column=1, padx=20, pady=5)
 
     # Text box
