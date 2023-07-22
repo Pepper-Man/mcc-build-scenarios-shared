@@ -11,6 +11,7 @@ from tkinter import messagebox
 #-------------------------------------- GLOBAL VARIABLES BEGIN ----------------------------------
 
 h3ek_path = ""
+odstek_path = ""
 h4ek_path = ""
 
 #-------------------------------------- GLOBAL VARIABLES END ------------------------------------
@@ -160,7 +161,134 @@ def h3(scenarios_list):
 
 #-------------------------------------- ODST BEGIN ----------------------------------------------
 
+def odst(scenarios_list):
+    tool_exe = os.path.join(h3ek_path, "tool.exe")
+    map_languages = os.path.join(h3ek_path, "AllLanguages.txt")
+    sound_codex = os.path.join(
+        h3ek_path, "cache_builder", "sounds_file_codex.bin")
+    dvd_prop_list = os.path.join(
+        h3ek_path, "cache_builder", "dvd_prop_list.txt")
+    platform_is_pc = True
+    target_platform = "pc"
 
+    LANGUAGE = "english"
+    VERSION = "0"
+    SHARED_SOUNDS = "use-shared-sounds"
+    DEDICATED_SERVER = ""
+    USE_FMOD_DATA = "use-fmod-data" if platform_is_pc else ""
+
+    maps_folder = os.path.join(h3ek_path, "maps")
+
+    # Create the cache builder folder if necessary
+    print("Create the cache builder folder if necessary")
+    cache_builder_folder = os.path.join(h3ek_path, "cache_builder")
+    os.makedirs(cache_builder_folder, exist_ok=True)
+
+    # 1 - Delete everything from cache_builder to avoid stale data corrupting the process
+    print("Delete everything from cache_builder to avoid stale data corrupting the process")
+    shutil.rmtree(cache_builder_folder, ignore_errors=True)
+
+    # 2 - Delete maps and RSA manifests from the maps folder
+    print("Delete maps and RSA manifests from the maps folder")
+    for file in os.listdir(maps_folder):
+        if file.endswith(".map") or file.startswith("security"):
+            os.remove(os.path.join(maps_folder, file))
+
+    # 3 Build sound index for all maps
+    print("Build sound index for all maps")
+
+    for map in scenarios_list:
+        if os.path.exists(sound_codex):   
+            argument_list = ["build-cache-file-cache-sounds-index", map, "append", target_platform]
+            run_executable_in_another_directory(tool_exe, argument_list)
+        else:
+            argument_list = ["build-cache-file-cache-sounds-index", map, target_platform]
+            run_executable_in_another_directory(tool_exe, argument_list)
+
+    # 4 Build sound cache files
+    print("Build sound cache files")
+    language_files = [LANGUAGE] if platform_is_pc else [
+        line.strip() for line in open(map_languages, "r")]
+
+    for language_file in language_files:
+        argument_list = ["build-cache-file-cache-sounds", target_platform, language_file, VERSION, USE_FMOD_DATA, DEDICATED_SERVER]
+        run_executable_in_another_directory(tool_exe, argument_list)
+
+    # 5 - Generate full shared.map
+    print("Generate full shared.map")
+    argument_list = ["build-cache-file-cache-shared-first", target_platform, LANGUAGE, VERSION, "optimizable", SHARED_SOUNDS, USE_FMOD_DATA, DEDICATED_SERVER]
+    run_executable_in_another_directory(tool_exe, argument_list)
+
+    # 6 - Generate full campaign.map
+    print("Generate full campaign.map")
+    argument_list = ["build-cache-file-cache-campaign-second", target_platform, LANGUAGE, VERSION, "optimizable", USE_FMOD_DATA, DEDICATED_SERVER]
+    run_executable_in_another_directory(tool_exe, argument_list)
+
+    # 7 - Generate intermediate files for levels
+    print("Generate intermediate files for levels")
+
+    for map in scenarios_list:
+        scenario_relative_path = os.path.join(
+            h3ek_path, "tags", f"{map}.scenario")
+        if os.path.exists(scenario_relative_path):
+            argument_list = ["build-cache-file-language-version-optimizable-use-sharing", LANGUAGE, VERSION, map, target_platform, SHARED_SOUNDS, USE_FMOD_DATA, DEDICATED_SERVER]
+            run_executable_in_another_directory(tool_exe, argument_list)
+        else:
+            print(f"Missing {scenario_relative_path}")
+
+    # 8 - Create dvd_prop_list.txt
+    print("Create prop list")
+    with open(dvd_prop_list, "w") as prop_list:
+        for map in scenarios_list:
+            map_name = os.path.splitext(os.path.basename(map))[0]
+            prop_list.write(
+                f"..\cache_builder\\to_optimize\\{map_name}.cache_file_resource_gestalt\n")
+
+    # 9 - Copy shared.map and campaign.map to optimize directory
+    print("Copy shared.map and campaign.map to optimize directory")
+    dest_folder = os.path.join(cache_builder_folder, "to_optimize")
+    os.makedirs(dest_folder, exist_ok=True)
+
+    shared_map_src = os.path.join(maps_folder, "shared.map")
+    campaign_map_src = os.path.join(maps_folder, "campaign.map")
+    language_map_src = os.path.join(maps_folder, f"{LANGUAGE}.map")
+
+    shutil.copy2(shared_map_src, os.path.join(dest_folder, "shared.map"))
+    if os.path.exists(campaign_map_src):
+        shutil.copy2(campaign_map_src, os.path.join(dest_folder, "campaign.map"))
+
+    if os.path.exists(language_map_src):
+        shutil.copy2(language_map_src, os.path.join(
+            dest_folder, f"{LANGUAGE}.map"))
+
+    # 10 - Generate shared intermediate files
+    print("Generate shared intermediate files")
+    argument_list = ["generate-final-shared-layout", dvd_prop_list, target_platform, DEDICATED_SERVER]
+    run_executable_in_another_directory(tool_exe, argument_list)
+
+    # 11 - Generate optimized level cache files
+    print("Generate optimized level cache files")
+    for map in scenarios_list:
+        scenario_relative_path = os.path.join(
+            h3ek_path, "tags", f"{map}.scenario")
+        if os.path.exists(scenario_relative_path):
+            argument_list = ["build-cache-file-generate-new-layout", map, target_platform, USE_FMOD_DATA, DEDICATED_SERVER]
+            run_executable_in_another_directory(tool_exe, argument_list)
+        else:
+            print(f"Missing {scenario_relative_path}")
+
+    # 12 - Generate optimized shared.map
+    print("Generate optimized shared.map")
+    argument_list = ["build-cache-file-link", "shared", target_platform, USE_FMOD_DATA, DEDICATED_SERVER]
+    run_executable_in_another_directory(tool_exe, argument_list)
+
+    # 13 - Generate optimized campaign.map
+    print("Generate optimized campaign.map")
+    argument_list = ["build-cache-file-link", "campaign", target_platform, USE_FMOD_DATA, DEDICATED_SERVER]
+    run_executable_in_another_directory(tool_exe, argument_list)
+
+    print("\n\nFinished successfully. Built map files are in \"H3EK\\maps\"")
+    messagebox.showinfo("Success", "Finished successfully. Built map files are in \"H3EK\\maps\"")
 
 #-------------------------------------- ODST END ------------------------------------------------
 
@@ -222,6 +350,7 @@ def h4(selected_scens):
 
 def open_scenario_file(text_box, engine):
     global h3ek_path
+    global odstek_path
     global h4ek_path
     def add_path():
         text_box.insert(tk.END, file_path + "\n")
@@ -264,6 +393,14 @@ def open_scenario_file(text_box, engine):
                     messagebox.showerror("Error", "Scenario filepath does not look valid for selected engine!")
                 else:
                     add_path()
+                    if odstek_path == "":
+                        index = file_path_full.find("/H3ODSTEK/")
+                        if index != -1: 
+                            odstek_path = os.path.normpath(file_path_full[:index + len("/H3ODSTEK/")])
+                            print(odstek_path)
+                        else:
+                            messagebox.showerror("Error", "Please contact the developer, this should not have happened")
+                            exit(-3)
             elif engine.get() == "Halo Reach":
                 if "HREK/tags" not in file_path_full:
                     messagebox.showerror("Error", "Scenario filepath does not look valid for selected engine!")
@@ -307,7 +444,7 @@ def compile_scenarios(text_box, engine):
         elif engine.get() == "Halo 3":
             h3(scenarios_list)
         elif engine.get() == "Halo 3: ODST":
-            print("not done this yet")
+            odst(scenarios_list)
         elif engine.get() == "Halo Reach":
             print("not done this yet")
         elif engine.get() == "Halo 4":
