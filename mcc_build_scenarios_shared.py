@@ -10,6 +10,7 @@ from tkinter import messagebox
 
 #-------------------------------------- GLOBAL VARIABLES BEGIN ----------------------------------
 
+h2ek_path = ""
 h3ek_path = ""
 odstek_path = ""
 hrek_path = ""
@@ -26,6 +27,14 @@ def run_executable_in_another_directory(executable_path, arguments):
     subprocess.run(arguments)
 
 #-------------------------------------- GLOBAL FUNCTIONS END ------------------------------------
+
+#-------------------------------------- H2 BEGIN ------------------------------------------------
+
+def h2(scenarios_list):
+    print("Halo 2")
+
+#-------------------------------------- H2 END --------------------------------------------------
+
 
 #-------------------------------------- H3/ODST/REACH BEGIN -------------------------------------
 
@@ -233,10 +242,7 @@ def h4(selected_scens):
 #-------------------------------------- HALO 4 END ----------------------------------------------
 
 def open_scenario_file(text_box, engine):
-    global h3ek_path
-    global odstek_path
-    global hrek_path
-    global h4ek_path
+    global h2ek_path, h3ek_path, odstek_path, hrek_path, h4ek_path
     
     def add_path():
         text_box.insert(tk.END, file_path + "\n")
@@ -261,6 +267,14 @@ def open_scenario_file(text_box, engine):
                     messagebox.showerror("Error", "Scenario filepath does not look valid for selected engine!")
                 else:
                     add_path()
+                    if h2ek_path == "":
+                        index = file_path_full.find("/H2EK/")
+                        if index != -1: 
+                            h2ek_path = os.path.normpath(file_path_full[:index + len("/H2EK/")])
+                            print(h2ek_path)
+                        else:
+                            messagebox.showerror("Error", "Please contact the developer, this should not have happened")
+                            exit(-3)
             elif engine.get() == "Halo 3":
                 if "H3EK/tags" not in file_path_full:
                     messagebox.showerror("Error", "Scenario filepath does not look valid for selected engine!")
@@ -333,8 +347,10 @@ def compile_scenarios(text_box, engine):
     else:
         scenarios_list = text_box.get("1.0", "end-1c").splitlines()
         print("Compiling scenarios")
-        if engine.get() == "Halo 2" or "Halo 3" or "Halo 3: ODST" or "Halo Reach":
+        if engine.get() in ["Halo 3", "Halo 3: ODST", "Halo Reach"]:
             preH4(scenarios_list, engine.get())
+        elif engine.get() == "Halo 2":
+            h2(scenarios_list)
         elif engine.get() == "Halo 4":
             h4(scenarios_list)
         else:
