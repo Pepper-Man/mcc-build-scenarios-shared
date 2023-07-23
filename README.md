@@ -1,6 +1,6 @@
 # mcc-build-scenarios-shared
 Python script for streamlining the process of building maps with shared resources.
-Currently supports H3, ODST and H4, with more support on the way.
+Currently supports H2 H3, ODST, Reach and H4, with more support on the way.
 
 # Requirements
 [Python](https://www.python.org/) - preferably 3.10.6 or newer, older versions not tested
