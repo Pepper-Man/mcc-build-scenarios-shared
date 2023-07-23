@@ -32,6 +32,48 @@ def run_executable_in_another_directory(executable_path, arguments):
 
 def h2(scenarios_list):
     print("Halo 2")
+    
+    platform = "win64"
+    no_extra_prints = "-batch"
+    build_flags = "compress|resource_sharing|multilingual_sounds"
+    build_flags_sp = "compress|resource_sharing|multilingual_sounds|remastered_support"
+    build_flags_mp = "compress|resource_sharing|multilingual_sounds|mp_tag_sharing"
+    
+    engine_path = h2ek_path
+    tool_exe = os.path.join(engine_path, "tool.exe")
+    maps_folder = os.path.join(engine_path, "h2_maps_win64_dx11")
+    
+    # 1 - Delete everything from maps to avoid stale data corrupting the process
+    print("Delete everything from maps to avoid stale data corrupting the process")
+    shutil.rmtree(maps_folder, ignore_errors=True)
+    
+    # 2 - Generate mainmenu.map
+    print("Generate mainmenu.map")
+    argument_list = [no_extra_prints, "build-cache-file", "scenarios\\ui\\mainmenu\\mainmenu", platform, build_flags]
+    run_executable_in_another_directory(tool_exe, argument_list)
+    
+    # 3 - Generate shared.map
+    print("Generate shared.map")
+    argument_list = [no_extra_prints, "build-cache-file", "scenarios\\shared\\shared", platform, build_flags]
+    run_executable_in_another_directory(tool_exe, argument_list)
+    
+    # 4 - Generate single_player_shared.map
+    print("Generate single_player_shared.map")
+    argument_list = [no_extra_prints, "build-cache-file", "scenarios\\shared\\single_player_shared", platform, build_flags]
+    run_executable_in_another_directory(tool_exe, argument_list)
+    
+    # 5 - Generate cache files
+    print("Generate cache files")
+    for map in scenarios_list:
+        if "solo" in map:
+            argument_list = [no_extra_prints, "build-cache-file", map, platform, build_flags_sp]
+        else:
+            argument_list = [no_extra_prints, "build-cache-file", map, platform, build_flags_mp]
+        
+        run_executable_in_another_directory(tool_exe, argument_list)
+        
+    print("\n\nFinished successfully. Built map files are in \"H2EK\\h2_maps_win64_dx11\"")
+    messagebox.showinfo("Success", "Finished successfully. Built map files are in \"H4EK\\h2_maps_win64_dx11\"")
 
 #-------------------------------------- H2 END --------------------------------------------------
 
@@ -373,7 +415,7 @@ def main():
 
     # Information header
     header_font = font.Font(size=10, weight='bold')
-    info_label = tk.Label(window, text='Currently Supported: H3, ODST, HR, H4\nPlanned: H2, H2AMP', font=header_font)
+    info_label = tk.Label(window, text='Currently Supported: H2, H3, ODST, HR, H4\nPlanned: H2AMP', font=header_font)
     info_label.grid(row=0, column=1, padx=5, pady=5)
 
     # Get engine version
@@ -383,7 +425,7 @@ def main():
     selected_engine.set("Halo 3") # Default to H3
     folder_label = tk.Label(window, text='Select engine version:')
     folder_label.grid(row=2, column=1, padx=5, pady=5)
-    ek_entry = ttk.Combobox(window, textvariable=selected_engine, values=["Halo 3", "Halo 3: ODST", "Halo Reach", "Halo 4"], state="readonly")
+    ek_entry = ttk.Combobox(window, textvariable=selected_engine, values=["Halo 2", "Halo 3", "Halo 3: ODST", "Halo Reach", "Halo 4"], state="readonly")
     ek_entry.grid(row=3, column=1, padx=20, pady=5)
 
     # Text box
