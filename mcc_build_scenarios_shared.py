@@ -74,7 +74,7 @@ def h2(scenarios_list):
         run_executable_in_another_directory(tool_exe, argument_list)
         
     print("\n\nFinished successfully. Built map files are in \"H2EK\\h2_maps_win64_dx11\"")
-    messagebox.showinfo("Success", "Finished successfully. Built map files are in \"H4EK\\h2_maps_win64_dx11\"")
+    messagebox.showinfo("Success", "Finished successfully. Built map files are in \"H2EK\\h2_maps_win64_dx11\"")
 
 #-------------------------------------- H2 END --------------------------------------------------
 
