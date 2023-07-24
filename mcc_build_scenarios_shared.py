@@ -26,12 +26,24 @@ def run_executable_in_another_directory(executable_path, arguments):
     os.chdir(executable_folder)
     arguments.insert(0, str(executable_path))
     subprocess.run(arguments)
+    
+def update_tasks(progress_var, stage, total_stages, window):
+    progress_var.set(stage / total_stages * 100)
 
 #-------------------------------------- GLOBAL FUNCTIONS END ------------------------------------
 
 #-------------------------------------- H2 BEGIN ------------------------------------------------
 
-def h2(scenarios_list):
+def h2(scenarios_list, window):
+    # Progress bar
+    progress_label = tk.Label(window, text="Progress: ")
+    progress_label.grid(row=9, column=1, padx=20, pady=5)
+    progress_var = tk.DoubleVar()
+    progress_bar = ttk.Progressbar(window, variable=progress_var, maximum=100)
+    progress_bar.grid(row=9, column=1, padx=20, pady=5, columnspan=3, sticky="ew")
+    update_tasks(progress_var, 0, 5, window)
+    window.update()
+    
     print("Halo 2")
     
     platform = "win64"
@@ -47,21 +59,29 @@ def h2(scenarios_list):
     # 1 - Delete everything from maps to avoid stale data corrupting the process
     print("Delete everything from maps to avoid stale data corrupting the process")
     shutil.rmtree(maps_folder, ignore_errors=True)
-    
+    update_tasks(progress_var, 1, 5, window)
+    window.update()
+        
     # 2 - Generate mainmenu.map
     print("Generate mainmenu.map")
     argument_list = [no_extra_prints, "build-cache-file", "scenarios\\ui\\mainmenu\\mainmenu", platform, build_flags]
     run_executable_in_another_directory(tool_exe, argument_list)
+    update_tasks(progress_var, 2, 5, window)
+    window.update()
     
     # 3 - Generate shared.map
     print("Generate shared.map")
     argument_list = [no_extra_prints, "build-cache-file", "scenarios\\shared\\shared", platform, build_flags]
     run_executable_in_another_directory(tool_exe, argument_list)
+    update_tasks(progress_var, 3, 5, window)
+    window.update()
     
     # 4 - Generate single_player_shared.map
     print("Generate single_player_shared.map")
     argument_list = [no_extra_prints, "build-cache-file", "scenarios\\shared\\single_player_shared", platform, build_flags]
     run_executable_in_another_directory(tool_exe, argument_list)
+    update_tasks(progress_var, 4, 5, window)
+    window.update()
     
     # 5 - Generate cache files
     print("Generate cache files")
@@ -73,8 +93,11 @@ def h2(scenarios_list):
         
         run_executable_in_another_directory(tool_exe, argument_list)
         
+    update_tasks(progress_var, 5, 5, window)
+    window.update()
+        
     print("\n\nFinished successfully. Built map files are in \"H2EK\\h2_maps_win64_dx11\"")
-    messagebox.showinfo("Success", "Finished successfully. Built map files are in \"H4EK\\h2_maps_win64_dx11\"")
+    messagebox.showinfo("Success", "Finished successfully. Built map files are in \"H2EK\\h2_maps_win64_dx11\"")
 
 #-------------------------------------- H2 END --------------------------------------------------
 
@@ -403,7 +426,7 @@ def remove_selected_line(text_box):
         text_box.delete(line_start, line_end)
         print("Removed line:", line_content.strip())
         
-def compile_scenarios(text_box, engine):
+def compile_scenarios(text_box, engine, window):
     # Check that text box isn't empty
     if text_box.get("1.0", "end-1c") == "":
         print("Empty")
@@ -414,7 +437,7 @@ def compile_scenarios(text_box, engine):
         if engine.get() in ["Halo 3", "Halo 3: ODST", "Halo Reach"]:
             preH4(scenarios_list, engine.get())
         elif engine.get() == "Halo 2":
-            h2(scenarios_list)
+            h2(scenarios_list, window)
         elif engine.get() in ["Halo 4", "Halo 2: AMP"]:
             h4plus(scenarios_list, engine.get())
         else:
@@ -423,16 +446,18 @@ def compile_scenarios(text_box, engine):
         
         
 def main():
+    global progress_var
+    
     def highlight_line(event):
         # Remove the "highlight" tag from any previously highlighted line
         text_box.tag_remove("highlight", "1.0", "end")
         # Add the "highlight" tag to the clicked line
         text_box.tag_add("highlight", "current linestart", "current lineend+1c")
-    
+        
     # Window creation
     window = tk.Tk()
     window.title('MCC Build Optimized Maps Tool')
-    window.geometry('550x550')
+    window.geometry('550x650')
     window.resizable(width=False, height=False)
 
     # Information header
@@ -467,8 +492,10 @@ def main():
     remove_button.grid(row=7, column=1, padx=20, pady=5)
     
     # Compile button
-    compile_button = tk.Button(window, text="Compile Scenarios!", command=lambda : compile_scenarios(text_box, ek_entry))
+    compile_button = tk.Button(window, text="Compile Scenarios!", command=lambda : compile_scenarios(text_box, ek_entry, window))
     compile_button.grid(row=8, column=1, padx=20, pady=30)
+    
+    
     
     window.mainloop()
 
