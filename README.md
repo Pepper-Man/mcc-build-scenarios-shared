@@ -25,4 +25,4 @@ Currently supports ALL titles in MCC, with the exception of CE.
 
 # Additional Notes
 * This tool relies on your editing kit folder name to function correctly, to avoid having to manually specify each of their locations. If you have changed the name of your editing kit folder(s), this tool will break.
-* Halo 2 (Classic, not Anniversary Multiplayer) currently seems to still be unable to utilise shared maps correctly via Excession/Steam Workshop. It *should* still work via map replacement. I will update this section with additional info as time goes on.
+* Halo 2 (Classic, not Anniversary Multiplayer) is currently unable to utilise .dat/shared .map overrides via Excession/Steam Workshop, despite being able to build them with this tool. It is currently unclear if support will be added in the future.
