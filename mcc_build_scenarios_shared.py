@@ -35,13 +35,20 @@ def update_tasks(progress_var, stage, total_stages, window):
 #-------------------------------------- H2 BEGIN ------------------------------------------------
 
 def h2(scenarios_list, window):
+    stage_count = 0
+    total_stages = 4 # H2 5 by default, not including the actual map files
+    for map in scenarios_list:
+        total_stages += 1
+    
     # Progress bar
-    progress_label = tk.Label(window, text="Progress: ")
+    window.geometry('550x620')
+    progress_label = tk.Label(window, text="Removing old data")
     progress_label.grid(row=9, column=1, padx=20, pady=5)
     progress_var = tk.DoubleVar()
     progress_bar = ttk.Progressbar(window, variable=progress_var, maximum=100)
-    progress_bar.grid(row=9, column=1, padx=20, pady=5, columnspan=3, sticky="ew")
-    update_tasks(progress_var, 0, 5, window)
+    progress_bar.grid(row=10, column=1, padx=20, pady=5, columnspan=3, sticky="ew")
+    update_tasks(progress_var, stage_count, total_stages, window)
+    stage_count += 1
     window.update()
     
     print("Halo 2")
@@ -59,41 +66,52 @@ def h2(scenarios_list, window):
     # 1 - Delete everything from maps to avoid stale data corrupting the process
     print("Delete everything from maps to avoid stale data corrupting the process")
     shutil.rmtree(maps_folder, ignore_errors=True)
-    update_tasks(progress_var, 1, 5, window)
+    update_tasks(progress_var, stage_count, total_stages, window)
+    stage_count += 1
+    progress_label.config(text="Generating mainmenu.map")
     window.update()
         
     # 2 - Generate mainmenu.map
     print("Generate mainmenu.map")
     argument_list = [no_extra_prints, "build-cache-file", "scenarios\\ui\\mainmenu\\mainmenu", platform, build_flags]
     run_executable_in_another_directory(tool_exe, argument_list)
-    update_tasks(progress_var, 2, 5, window)
+    update_tasks(progress_var, stage_count, total_stages, window)
+    stage_count += 1
+    progress_label.config(text="Generating shared.map")
     window.update()
     
     # 3 - Generate shared.map
     print("Generate shared.map")
     argument_list = [no_extra_prints, "build-cache-file", "scenarios\\shared\\shared", platform, build_flags]
     run_executable_in_another_directory(tool_exe, argument_list)
-    update_tasks(progress_var, 3, 5, window)
+    update_tasks(progress_var, stage_count, total_stages, window)
+    stage_count += 1
+    progress_label.config(text="Generating single_player_shared.map")
     window.update()
     
     # 4 - Generate single_player_shared.map
     print("Generate single_player_shared.map")
     argument_list = [no_extra_prints, "build-cache-file", "scenarios\\shared\\single_player_shared", platform, build_flags]
     run_executable_in_another_directory(tool_exe, argument_list)
-    update_tasks(progress_var, 4, 5, window)
+    update_tasks(progress_var, stage_count, total_stages, window)
+    stage_count += 1
     window.update()
     
     # 5 - Generate cache files
     print("Generate cache files")
     for map in scenarios_list:
+        progress_label.config(text="Building " + os.path.basename(map) + ".map")
+        window.update()
         if "solo" in map:
             argument_list = [no_extra_prints, "build-cache-file", map, platform, build_flags_sp]
         else:
             argument_list = [no_extra_prints, "build-cache-file", map, platform, build_flags_mp]
         
         run_executable_in_another_directory(tool_exe, argument_list)
+        update_tasks(progress_var, stage_count, total_stages, window)
+        stage_count += 1
         
-    update_tasks(progress_var, 5, 5, window)
+    progress_label.config(text="Finished!")
     window.update()
         
     print("\n\nFinished successfully. Built map files are in \"H2EK\\h2_maps_win64_dx11\"")
@@ -457,7 +475,7 @@ def main():
     # Window creation
     window = tk.Tk()
     window.title('MCC Build Optimized Maps Tool')
-    window.geometry('550x650')
+    window.geometry('550x550')
     window.resizable(width=False, height=False)
 
     # Information header
@@ -494,8 +512,6 @@ def main():
     # Compile button
     compile_button = tk.Button(window, text="Compile Scenarios!", command=lambda : compile_scenarios(text_box, ek_entry, window))
     compile_button.grid(row=8, column=1, padx=20, pady=30)
-    
-    
     
     window.mainloop()
 
