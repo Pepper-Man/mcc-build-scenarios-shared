@@ -15,6 +15,7 @@ h3ek_path = ""
 odstek_path = ""
 hrek_path = ""
 h4ek_path = ""
+h2amp_path = ""
 
 #-------------------------------------- GLOBAL VARIABLES END ------------------------------------
 
@@ -236,13 +237,21 @@ def generate_new_layout(arg, tool_path):
     fileName = os.path.splitext(os.path.basename(arg))[0]
     run_executable_in_another_directory(tool_path, ["build-cache-file-generate-new-layout", fileName, "pc"])
     
-def h4(selected_scens):
-    # Set tool path
-    tool_path = os.path.join(h4ek_path, "tool.exe")
+def h4plus(selected_scens, engine):
+    
+    if engine == "Halo 4":
+        print("Halo 4")
+        engine_path = h4ek_path
+    if engine == "Halo 2: AMP":
+        print("H2AMP")
+        engine_path = h2amp_path
+    
+    short_name = os.path.basename(engine_path)
+    tool_path = os.path.join(engine_path, "tool.exe")
     
     # Delete old cach_builder folder, remove existing .map files
-    shutil.rmtree(os.path.join(h4ek_path, "cache_builder"), ignore_errors=True)
-    files_to_delete = os.path.join(h4ek_path, "maps", "*.map")
+    shutil.rmtree(os.path.join(engine_path, "cache_builder"), ignore_errors=True)
+    files_to_delete = os.path.join(engine_path, "maps", "*.map")
     for f in glob.glob(files_to_delete):
         os.remove(f)
     
@@ -254,16 +263,16 @@ def h4(selected_scens):
         build_cache_sharing(scenario, tool_path)
         
     # Copy maps
-    shutil.copy(os.path.join(h4ek_path, "maps", "shared.map"), os.path.join(h4ek_path, "cache_builder", "to_optimize"))
-    if os.path.exists(os.path.join(h4ek_path, "maps", "campaign.map")):
-        shutil.copy(os.path.join(h4ek_path, "maps", "campaign.map"), os.path.join(h4ek_path, "cache_builder", "to_optimize"))
+    shutil.copy(os.path.join(engine_path, "maps", "shared.map"), os.path.join(engine_path, "cache_builder", "to_optimize"))
+    if os.path.exists(os.path.join(engine_path, "maps", "campaign.map")):
+        shutil.copy(os.path.join(engine_path, "maps", "campaign.map"), os.path.join(engine_path, "cache_builder", "to_optimize"))
     
     # Remove old dvd_prop_list
-    dvd_prop_list = os.path.join(h4ek_path, "built_dvd_prop_list.txt")
+    dvd_prop_list = os.path.join(engine_path, "built_dvd_prop_list.txt")
     if os.path.exists(dvd_prop_list):
         os.remove(dvd_prop_list)
         
-    for filename in glob.glob(os.path.join(h4ek_path, "cache_builder\\to_optimize\\*.cache_file_resource_gestalt")):
+    for filename in glob.glob(os.path.join(engine_path, "cache_builder\\to_optimize\\*.cache_file_resource_gestalt")):
         with open(dvd_prop_list, "a") as file:
             file.write(f"../cache_builder/to_optimize/{os.path.basename(filename)}\n")
             
@@ -271,20 +280,20 @@ def h4(selected_scens):
     run_executable_in_another_directory(tool_path, ["generate-final-shared-layout", dvd_prop_list, "pc"])
     
     # Finalise maps
-    for filename in glob.glob(os.path.join(h4ek_path, "cache_builder\\to_optimize\\*.cache_file_resource_gestalt")):
+    for filename in glob.glob(os.path.join(engine_path, "cache_builder\\to_optimize\\*.cache_file_resource_gestalt")):
         generate_new_layout(filename, tool_path)
         
     # And relink
     run_executable_in_another_directory(tool_path, ["build-cache-file-link", "shared", "pc"])
     run_executable_in_another_directory(tool_path, ["build-cache-file-link", "campaign", "pc"])
     
-    print("\n\nFinished successfully. Built map files are in \"H4EK\\maps\"")
-    messagebox.showinfo("Success", "Finished successfully. Built map files are in \"H4EK\\maps\"")
+    print("\n\nFinished successfully. Built map files are in \"" + short_name + "\\maps\"")
+    messagebox.showinfo("Success", "Finished successfully. Built map files are in \"" + short_name + "\\maps\"")
 
 #-------------------------------------- HALO 4 END ----------------------------------------------
 
 def open_scenario_file(text_box, engine):
-    global h2ek_path, h3ek_path, odstek_path, hrek_path, h4ek_path
+    global h2ek_path, h3ek_path, odstek_path, hrek_path, h4ek_path, h2amp_path
     
     def add_path():
         text_box.insert(tk.END, file_path + "\n")
@@ -369,6 +378,19 @@ def open_scenario_file(text_box, engine):
                         else:
                             messagebox.showerror("Error", "Please contact the developer, this should not have happened")
                             exit(-3)
+            elif engine.get() == "Halo 2: AMP":
+                if "H2AMPEK/tags" not in file_path_full:
+                    messagebox.showerror("Error", "Scenario filepath does not look valid for selected engine!")
+                else:
+                    add_path()
+                    if h2amp_path == "":
+                        index = file_path_full.find("/H2AMPEK/")
+                        if index != -1: 
+                            h2amp_path = os.path.normpath(file_path_full[:index + len("/H2AMPEK/")])
+                            print(h2amp_path)
+                        else:
+                            messagebox.showerror("Error", "Please contact the developer, this should not have happened")
+                            exit(-3)
     else:
         print("Something has gone horribly wrong here")
         exit(-1)
@@ -393,8 +415,8 @@ def compile_scenarios(text_box, engine):
             preH4(scenarios_list, engine.get())
         elif engine.get() == "Halo 2":
             h2(scenarios_list)
-        elif engine.get() == "Halo 4":
-            h4(scenarios_list)
+        elif engine.get() in ["Halo 4", "Halo 2: AMP"]:
+            h4plus(scenarios_list, engine.get())
         else:
             print("Something else has gone horrifically wrong")
             exit(-2)
@@ -415,7 +437,7 @@ def main():
 
     # Information header
     header_font = font.Font(size=10, weight='bold')
-    info_label = tk.Label(window, text='Currently Supported: H2, H3, ODST, HR, H4\nPlanned: H2AMP', font=header_font)
+    info_label = tk.Label(window, text='Supported: H2, H3, ODST, HR, H4, H2AMP', font=header_font)
     info_label.grid(row=0, column=1, padx=5, pady=5)
 
     # Get engine version
@@ -425,7 +447,7 @@ def main():
     selected_engine.set("Halo 3") # Default to H3
     folder_label = tk.Label(window, text='Select engine version:')
     folder_label.grid(row=2, column=1, padx=5, pady=5)
-    ek_entry = ttk.Combobox(window, textvariable=selected_engine, values=["Halo 2", "Halo 3", "Halo 3: ODST", "Halo Reach", "Halo 4"], state="readonly")
+    ek_entry = ttk.Combobox(window, textvariable=selected_engine, values=["Halo 2", "Halo 3", "Halo 3: ODST", "Halo Reach", "Halo 4", "Halo 2: AMP"], state="readonly")
     ek_entry.grid(row=3, column=1, padx=20, pady=5)
 
     # Text box
