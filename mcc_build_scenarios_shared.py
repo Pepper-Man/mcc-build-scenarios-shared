@@ -588,8 +588,8 @@ def open_scenario_file(text_box, engine):
                             messagebox.showerror("Error", "Please contact the developer, this should not have happened")
                             exit(-3)
     else:
-        print("Something has gone horribly wrong here")
-        exit(-1)
+        # User has cancelled
+        print("Cancelled")
 
 def remove_selected_line(text_box):
     selected_index = text_box.tag_ranges("highlight")
