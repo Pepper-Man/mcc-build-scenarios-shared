@@ -25,4 +25,4 @@ Currently supports ALL titles in MCC, with the exception of CE.
 
 # Additional Notes
 * This tool relies on your editing kit folder name to function correctly, to avoid having to manually specify each of their locations. If you have changed the name of your editing kit folder(s), this tool will break.
-* Halo 2 (Classic, not Anniversary Multiplayer) is currently unable to utilise .dat/shared .map overrides via Excession/Steam Workshop, despite being able to build them with this tool. It is currently unclear if support will be added in the future.
+* Halo 2 shared maps are now supported by MCC as of the September 19th 2023 update. The .map and .dat files are required (put these into your mod folder's "h2_maps_win64_dx11" folder), the .bin files are not required (thanks to Arttumiro for testing this).
