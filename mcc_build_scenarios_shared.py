@@ -603,13 +603,35 @@ def remove_selected_line(text_box):
         text_box["state"] = "disabled"
         print("Removed line:", line_content.strip())
         
-def compile_scenarios(text_box, engine, window):
+def compile_scenarios(text_box, engine, window, allmaps):
+    scenarios_list = []
     # Check that text box isn't empty
-    if text_box.get("1.0", "end-1c") == "":
+    if (text_box.get("1.0", "end-1c") == "") and not allmaps.get():
         print("Empty")
         messagebox.showerror("Error", "No scenarios added. Aborting compile process.")
     else:
-        scenarios_list = text_box.get("1.0", "end-1c").splitlines()
+        if allmaps.get() == False: 
+            scenarios_list = text_box.get("1.0", "end-1c").splitlines()
+        else:
+            # Grab scenarios list from txt
+            print("Open allmaps.txt")
+            script_directory = os.path.dirname(os.path.abspath(__file__))
+            file_path = os.path.join(script_directory, "AllMaps.txt")
+            try:
+                with open(file_path, "r") as file:
+                    maps = file.readlines()
+                    maps = [line.strip() for line in maps]
+            except FileNotFoundError:
+                messagebox.showerror("Error", "Could not find AllMaps.txt")
+                print("AllMaps not found error")
+                return
+            except Exception as e:
+                messagebox.showerror("Error", "Unknown file error: " + e)
+                print("Unknown file error: " + e)
+               
+            for map_path in maps:
+                scenarios_list.append(map_path) 
+        
         print("Compiling scenarios")
         if engine.get() in ["Halo 3", "Halo 3: ODST", "Halo Reach"]:
             preH4(scenarios_list, engine.get(), window)
@@ -686,7 +708,7 @@ def main():
     remove_button.grid(row=8, column=1, padx=20, pady=5)
     
     # Compile button
-    compile_button = tk.Button(window, text="Compile Scenarios!", command=lambda : compile_scenarios(text_box, ek_entry, window))
+    compile_button = tk.Button(window, text="Compile Scenarios!", command=lambda : compile_scenarios(text_box, ek_entry, window, use_allmaps))
     compile_button.grid(row=9, column=1, padx=20, pady=30)
     
     window.mainloop()
