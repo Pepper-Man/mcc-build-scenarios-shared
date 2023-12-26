@@ -16,6 +16,7 @@ odstek_path = ""
 hrek_path = ""
 h4ek_path = ""
 h2amp_path = ""
+allmaps_filepath = ""
 
 #-------------------------------------- GLOBAL VARIABLES END ------------------------------------
 
@@ -592,6 +593,28 @@ def open_scenario_file(text_box, engine):
     else:
         # User has cancelled
         print("Cancelled")
+        
+def open_txt_file(allmaps_box, compile_button):
+    
+    def add_allmaps_path(path_to_add):
+        allmaps_box["state"] = "normal"
+        allmaps_box.delete("1.0", tk.END)
+        allmaps_box.insert(tk.END, path_to_add)
+        allmaps_box["state"] = "disabled"
+        
+    allmaps_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")], initialfile="AllMaps.txt")
+    # Check if the selected file is "AllMaps.txt"
+    if allmaps_path and not allmaps_path.endswith("AllMaps.txt"):
+        messagebox.showerror("Error", "File is not an \"AllMaps.txt\" file")
+        compile_button["state"] = "disabled"
+        return
+    elif allmaps_path == "":
+        print("User didn't select txt")
+        compile_button["state"] = "disabled"
+    else:
+        allmaps_filepath = allmaps_path
+        add_allmaps_path(allmaps_filepath)
+        compile_button["state"] = "normal"
 
 def remove_selected_line(text_box):
     selected_index = text_box.tag_ranges("highlight")
@@ -615,10 +638,8 @@ def compile_scenarios(text_box, engine, window, allmaps):
         else:
             # Grab scenarios list from txt
             print("Open allmaps.txt")
-            script_directory = os.path.dirname(os.path.abspath(__file__))
-            file_path = os.path.join(script_directory, "AllMaps.txt")
             try:
-                with open(file_path, "r") as file:
+                with open(allmaps_filepath, "r") as file:
                     maps = file.readlines()
                     maps = [line.strip() for line in maps]
             except FileNotFoundError:
@@ -630,7 +651,23 @@ def compile_scenarios(text_box, engine, window, allmaps):
                 print("Unknown file error: " + e)
                
             for map_path in maps:
-                scenarios_list.append(map_path) 
+                scenarios_list.append(map_path)
+                
+            # Set EK path
+            path = os.path.dirname(os.path.abspath(__file__))
+            if "H2EK" in path:
+                h2ek_path = path
+            elif "H3EK" in path:
+                h3ek_path = path
+            elif "H3ODSTEK" in path:
+                odstek_path = path
+            elif "HREK" in path:
+                hrek_path = path
+            elif "H4EK" in path:
+                h4ek_path = path
+            elif "H2AMPEK" in path:
+                h2amp_path = path
+            
         
         print("Compiling scenarios")
         if engine.get() in ["Halo 3", "Halo 3: ODST", "Halo Reach"]:
@@ -659,15 +696,29 @@ def main():
             # Disable control buttons
             add_button["state"] = "disabled"
             remove_button["state"] = "disabled"
+            selected_label["state"] = "disabled"
+            ek_entry["state"] = "disabled"
+            folder_label["state"] = "disabled"
+            compile_button["state"] = "disabled"
+            allmaps_select_label["state"] = "normal"
+            allmaps_box["state"] = "normal"
+            allmaps_button["state"] = "normal"
         else:
             # Enable control buttons
             add_button["state"] = "normal"
             remove_button["state"] = "normal"
+            selected_label["state"] = "normal"
+            ek_entry["state"] = "normal"
+            folder_label["state"] = "normal"
+            compile_button["state"] = "normal"
+            allmaps_select_label["state"] = "disabled"
+            allmaps_box["state"] = "disabled"
+            allmaps_button["state"] = "disabled"
         
     # Window creation
     window = tk.Tk()
     window.title('MCC Build Optimized Maps Tool')
-    window.geometry('450x500')
+    window.geometry('450x580')
     window.resizable(width=False, height=False)
 
     # Information header
@@ -689,27 +740,40 @@ def main():
     use_allmaps = tk.BooleanVar()
     checkbox = tk.Checkbutton(window, text="Use AllMaps.txt", variable=use_allmaps, command=on_checkbox_click)
     checkbox.grid(row=4, column=1, padx=5, pady=5)
+    
+    # AllMaps txt selection
+    allmaps_select_label = tk.Label(window, text="AllMaps.txt file:")
+    allmaps_select_label.grid(row=5, column=1, padx=5, pady=1)
+    allmaps_select_label["state"] = "disabled"
+    
+    allmaps_box = tk.Text(window, height=3, width=50)
+    allmaps_box.grid(row=6, column=1, padx=5, pady=1)
+    allmaps_box["state"] = "disabled"
+    
+    allmaps_button = tk.Button(window, text="Choose AllMaps.txt", command=lambda: open_txt_file(allmaps_box, compile_button))
+    allmaps_button.grid(row=7, column=1, padx=5, pady=1)
+    allmaps_button["state"] = "disabled"
 
     # Text box
     selected_label = tk.Label(window, text='Selected scenario paths:')
-    selected_label.grid(row=5, column=1, padx=5, pady=5)
+    selected_label.grid(row=8, column=1, padx=5, pady=5)
     text_box = tk.Text(window, wrap=tk.WORD, height=10, width=50)
     text_box.tag_configure("highlight", background="blue", foreground="white")
     text_box.bind("<1>", highlight_line)
-    text_box.grid(row=6, column=1, padx=20, pady=5)
+    text_box.grid(row=9, column=1, padx=20, pady=5)
     text_box["state"] = "disabled"
     
     # Add button
     add_button = tk.Button(window, text="Add Scenario", command=lambda : open_scenario_file(text_box, ek_entry))
-    add_button.grid(row=7, column=1, padx=20, pady=5)
+    add_button.grid(row=10, column=1, padx=20, pady=5)
     
     # Remove button
     remove_button = tk.Button(window, text="Remove Selected Scenario", command=lambda : remove_selected_line(text_box))
-    remove_button.grid(row=8, column=1, padx=20, pady=5)
+    remove_button.grid(row=11, column=1, padx=20, pady=5)
     
     # Compile button
     compile_button = tk.Button(window, text="Compile Scenarios!", command=lambda : compile_scenarios(text_box, ek_entry, window, use_allmaps))
-    compile_button.grid(row=9, column=1, padx=20, pady=30)
+    compile_button.grid(row=12, column=1, padx=20, pady=30)
     
     window.mainloop()
 
