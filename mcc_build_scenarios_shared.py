@@ -492,7 +492,9 @@ def open_scenario_file(text_box, engine):
     global h2ek_path, h3ek_path, odstek_path, hrek_path, h4ek_path, h2amp_path
     
     def add_path():
+        text_box["state"] = "normal"
         text_box.insert(tk.END, file_path + "\n")
+        text_box["state"] = "disabled"
     
     file_path = filedialog.askopenfilename(filetypes=[("Scenario Files", "*.scenario")])
     file_path_full = file_path
@@ -596,7 +598,9 @@ def remove_selected_line(text_box):
     if selected_index:
         line_start, line_end = selected_index
         line_content = text_box.get(line_start, line_end)
+        text_box["state"] = "normal"
         text_box.delete(line_start, line_end)
+        text_box["state"] = "disabled"
         print("Removed line:", line_content.strip())
         
 def compile_scenarios(text_box, engine, window):
@@ -627,10 +631,21 @@ def main():
         # Add the "highlight" tag to the clicked line
         text_box.tag_add("highlight", "current linestart", "current lineend+1c")
         
+    def on_checkbox_click():
+        checkbox_ticked = use_allmaps.get()
+        if checkbox_ticked:
+            # Disable control buttons
+            add_button["state"] = "disabled"
+            remove_button["state"] = "disabled"
+        else:
+            # Enable control buttons
+            add_button["state"] = "normal"
+            remove_button["state"] = "normal"
+        
     # Window creation
     window = tk.Tk()
     window.title('MCC Build Optimized Maps Tool')
-    window.geometry('550x550')
+    window.geometry('450x500')
     window.resizable(width=False, height=False)
 
     # Information header
@@ -647,26 +662,32 @@ def main():
     folder_label.grid(row=2, column=1, padx=5, pady=5)
     ek_entry = ttk.Combobox(window, textvariable=selected_engine, values=["Halo 2", "Halo 3", "Halo 3: ODST", "Halo Reach", "Halo 4", "Halo 2: AMP"], state="readonly")
     ek_entry.grid(row=3, column=1, padx=20, pady=5)
+    
+    # Use AllMaps checkbox
+    use_allmaps = tk.BooleanVar()
+    checkbox = tk.Checkbutton(window, text="Use AllMaps.txt", variable=use_allmaps, command=on_checkbox_click)
+    checkbox.grid(row=4, column=1, padx=5, pady=5)
 
     # Text box
     selected_label = tk.Label(window, text='Selected scenario paths:')
-    selected_label.grid(row=4, column=1, padx=5, pady=5)
+    selected_label.grid(row=5, column=1, padx=5, pady=5)
     text_box = tk.Text(window, wrap=tk.WORD, height=10, width=50)
     text_box.tag_configure("highlight", background="blue", foreground="white")
     text_box.bind("<1>", highlight_line)
-    text_box.grid(row=5, column=1, padx=20, pady=5)
+    text_box.grid(row=6, column=1, padx=20, pady=5)
+    text_box["state"] = "disabled"
     
     # Add button
     add_button = tk.Button(window, text="Add Scenario", command=lambda : open_scenario_file(text_box, ek_entry))
-    add_button.grid(row=6, column=1, padx=20, pady=5)
+    add_button.grid(row=7, column=1, padx=20, pady=5)
     
     # Remove button
     remove_button = tk.Button(window, text="Remove Selected Scenario", command=lambda : remove_selected_line(text_box))
-    remove_button.grid(row=7, column=1, padx=20, pady=5)
+    remove_button.grid(row=8, column=1, padx=20, pady=5)
     
     # Compile button
     compile_button = tk.Button(window, text="Compile Scenarios!", command=lambda : compile_scenarios(text_box, ek_entry, window))
-    compile_button.grid(row=8, column=1, padx=20, pady=30)
+    compile_button.grid(row=9, column=1, padx=20, pady=30)
     
     window.mainloop()
 
