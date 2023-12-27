@@ -16,6 +16,7 @@ odstek_path = ""
 hrek_path = ""
 h4ek_path = ""
 h2amp_path = ""
+allmaps_filepath = ""
 
 #-------------------------------------- GLOBAL VARIABLES END ------------------------------------
 
@@ -41,12 +42,12 @@ def h2(scenarios_list, window):
         total_stages += 1
     
     # Progress bar
-    window.geometry('550x620')
+    window.geometry('450x700')
     progress_label = tk.Label(window, text="Removing old data")
-    progress_label.grid(row=9, column=1, padx=20, pady=5)
+    progress_label.grid(row=13, column=1, padx=20, pady=5)
     progress_var = tk.DoubleVar()
     progress_bar = ttk.Progressbar(window, variable=progress_var, maximum=100)
-    progress_bar.grid(row=10, column=1, padx=20, pady=5, columnspan=3, sticky="ew")
+    progress_bar.grid(row=14, column=1, padx=20, pady=5, columnspan=3, sticky="ew")
     update_tasks(progress_var, stage_count, total_stages, window)
     stage_count += 1
     window.update()
@@ -130,12 +131,12 @@ def preH4(scenarios_list, engine, window):
         total_stages += 1
     
     # Progress bar
-    window.geometry('550x620')
+    window.geometry('450x700')
     progress_label = tk.Label(window, text="Creating cache_builder folder")
-    progress_label.grid(row=9, column=1, padx=20, pady=5)
+    progress_label.grid(row=13, column=1, padx=20, pady=5)
     progress_var = tk.DoubleVar()
     progress_bar = ttk.Progressbar(window, variable=progress_var, maximum=100)
-    progress_bar.grid(row=10, column=1, padx=20, pady=5, columnspan=3, sticky="ew")
+    progress_bar.grid(row=14, column=1, padx=20, pady=5, columnspan=3, sticky="ew")
     update_tasks(progress_var, stage_count, total_stages, window)
     stage_count += 1
     window.update()
@@ -376,12 +377,12 @@ def h4plus(selected_scens, engine, window):
         total_stages += 1
     
     # Progress bar
-    window.geometry('550x620')
+    window.geometry('450x700')
     progress_label = tk.Label(window, text="Creating cache_builder folder")
-    progress_label.grid(row=9, column=1, padx=20, pady=5)
+    progress_label.grid(row=13, column=1, padx=20, pady=5)
     progress_var = tk.DoubleVar()
     progress_bar = ttk.Progressbar(window, variable=progress_var, maximum=100)
-    progress_bar.grid(row=10, column=1, padx=20, pady=5, columnspan=3, sticky="ew")
+    progress_bar.grid(row=14, column=1, padx=20, pady=5, columnspan=3, sticky="ew")
     update_tasks(progress_var, stage_count, total_stages, window)
     stage_count += 1
     window.update()
@@ -492,7 +493,9 @@ def open_scenario_file(text_box, engine):
     global h2ek_path, h3ek_path, odstek_path, hrek_path, h4ek_path, h2amp_path
     
     def add_path():
+        text_box["state"] = "normal"
         text_box.insert(tk.END, file_path + "\n")
+        text_box["state"] = "disabled"
     
     file_path = filedialog.askopenfilename(filetypes=[("Scenario Files", "*.scenario")])
     file_path_full = file_path
@@ -590,32 +593,135 @@ def open_scenario_file(text_box, engine):
     else:
         # User has cancelled
         print("Cancelled")
+        
+def open_txt_file(allmaps_box, compile_button):
+    global allmaps_filepath
+    
+    def add_allmaps_path(path_to_add):
+        allmaps_box["state"] = "normal"
+        allmaps_box.delete("1.0", tk.END)
+        allmaps_box.insert(tk.END, path_to_add)
+        allmaps_box["state"] = "disabled"
+        
+    allmaps_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")], initialfile="AllMaps.txt")
+    # Check if the selected file is "AllMaps.txt"
+    if allmaps_path and not allmaps_path.endswith("AllMaps.txt"):
+        messagebox.showerror("Error", "File is not an \"AllMaps.txt\" file")
+        compile_button["state"] = "disabled"
+        return
+    elif allmaps_path == "":
+        print("User didn't select txt")
+        compile_button["state"] = "disabled"
+    else:
+        valid_eks = ["H2EK", "H3EK", "H3ODSTEK", "HREK", "H4EK", "H2AMPEK"]
+        if any (substring in allmaps_path for substring in valid_eks):
+            print("AllMaps.txt is inside valid EK")
+            allmaps_filepath = allmaps_path
+            add_allmaps_path(allmaps_filepath)
+            compile_button["state"] = "normal"
+        else:
+            # Txt is not in any known EK
+            messagebox.showerror("Error", "AllMaps.txt not located in editing kit root folder.")
+            return
 
 def remove_selected_line(text_box):
     selected_index = text_box.tag_ranges("highlight")
     if selected_index:
         line_start, line_end = selected_index
         line_content = text_box.get(line_start, line_end)
+        text_box["state"] = "normal"
         text_box.delete(line_start, line_end)
+        text_box["state"] = "disabled"
         print("Removed line:", line_content.strip())
         
-def compile_scenarios(text_box, engine, window):
+def compile_scenarios(text_box, engine, window, allmaps, comp_button):
+    global allmaps_filepath
+    global h2ek_path
+    global h3ek_path
+    global odstek_path
+    global hrek_path
+    global h4ek_path
+    global h2amp_path
+    
+    scenarios_list = []
     # Check that text box isn't empty
-    if text_box.get("1.0", "end-1c") == "":
+    if (text_box.get("1.0", "end-1c") == "") and not allmaps.get():
         print("Empty")
         messagebox.showerror("Error", "No scenarios added. Aborting compile process.")
     else:
-        scenarios_list = text_box.get("1.0", "end-1c").splitlines()
+        if allmaps.get() == False: 
+            scenarios_list = text_box.get("1.0", "end-1c").splitlines()
+            engine_type = engine.get()
+        else:
+            # Grab scenarios list from txt
+            print("Open allmaps.txt")
+            try:
+                with open(allmaps_filepath, "r") as file:
+                    maps = file.readlines()
+                    maps = [line.strip() for line in maps]
+            except FileNotFoundError:
+                messagebox.showerror("Error", "Could not find AllMaps.txt")
+                print("AllMaps not found error")
+                return
+            except Exception as e:
+                messagebox.showerror("Error", "Unknown file error: " + e)
+                print("Unknown file error: " + e)
+               
+            for map_path in maps:
+                # Check that scenario is valid/exists
+                full_scen_path = os.path.normpath(allmaps_filepath.replace("AllMaps.txt", "") + "/tags/" + map_path + ".scenario")
+                if os.path.exists(full_scen_path):
+                    scenarios_list.append(map_path)
+                else:
+                    print("Scenario path " + map_path + " is invalid")
+                    messagebox.showerror("Error", "The following scenario path cannot be found. Please check the filepaths in AllMaps.txt for errors:\n" + full_scen_path)
+                    return
+                
+            # Set EK path
+            if "H2EK" in allmaps_filepath:
+                print("H2 allmaps.txt")
+                index = allmaps_filepath.find("H2EK")
+                h2ek_path = allmaps_filepath[:index + len("H2EK")]
+                engine_type = "Halo 2"
+            elif "H3EK" in allmaps_filepath:
+                print("H3 allmaps.txt")
+                index = allmaps_filepath.find("H3EK")
+                h3ek_path = allmaps_filepath[:index + len("H3EK")]
+                engine_type = "Halo 3"
+            elif "H3ODSTEK" in allmaps_filepath:
+                print("ODST allmaps.txt")
+                index = allmaps_filepath.find("H3ODSTEK")
+                odstek_path = allmaps_filepath[:index + len("H3ODSTEK")]
+                engine_type = "Halo 3: ODST"
+            elif "HREK" in allmaps_filepath:
+                print("HR allmaps.txt")
+                index = allmaps_filepath.find("HREK")
+                hrek_path = allmaps_filepath[:index + len("HREK")]
+                engine_type = "Halo Reach"
+            elif "H4EK" in allmaps_filepath:
+                print("H4 allmaps.txt")
+                index = allmaps_filepath.find("H4EK")
+                h4ek_path = allmaps_filepath[:index + len("H4EK")]
+                engine_type = "Halo 4"
+            elif "H2AMPEK" in allmaps_filepath:
+                print("H2A allmaps.txt")
+                index = allmaps_filepath.find("H2AMPEK")
+                h2amp_path = allmaps_filepath[:index + len("H2AMPEK")]
+                engine_type = "Halo 2: AMP"
+
+        
         print("Compiling scenarios")
-        if engine.get() in ["Halo 3", "Halo 3: ODST", "Halo Reach"]:
-            preH4(scenarios_list, engine.get(), window)
-        elif engine.get() == "Halo 2":
+        if engine_type in ["Halo 3", "Halo 3: ODST", "Halo Reach"]:
+            preH4(scenarios_list, engine_type, window)
+        elif engine_type == "Halo 2":
             h2(scenarios_list, window)
-        elif engine.get() in ["Halo 4", "Halo 2: AMP"]:
-            h4plus(scenarios_list, engine.get(), window)
+        elif engine_type in ["Halo 4", "Halo 2: AMP"]:
+            h4plus(scenarios_list, engine_type, window)
         else:
             print("Something else has gone horrifically wrong")
             exit(-2)
+        
+        comp_button["state"] = "normal"
         
         
 def main():
@@ -627,10 +733,35 @@ def main():
         # Add the "highlight" tag to the clicked line
         text_box.tag_add("highlight", "current linestart", "current lineend+1c")
         
+    def on_checkbox_click():
+        checkbox_ticked = use_allmaps.get()
+        if checkbox_ticked:
+            # Disable control buttons
+            add_button["state"] = "disabled"
+            remove_button["state"] = "disabled"
+            selected_label["state"] = "disabled"
+            ek_entry["state"] = "disabled"
+            folder_label["state"] = "disabled"
+            compile_button["state"] = "disabled"
+            allmaps_select_label["state"] = "normal"
+            allmaps_box["state"] = "normal"
+            allmaps_button["state"] = "normal"
+        else:
+            # Enable control buttons
+            add_button["state"] = "normal"
+            remove_button["state"] = "normal"
+            selected_label["state"] = "normal"
+            ek_entry["state"] = "normal"
+            folder_label["state"] = "normal"
+            compile_button["state"] = "normal"
+            allmaps_select_label["state"] = "disabled"
+            allmaps_box["state"] = "disabled"
+            allmaps_button["state"] = "disabled"
+        
     # Window creation
     window = tk.Tk()
     window.title('MCC Build Optimized Maps Tool')
-    window.geometry('550x550')
+    window.geometry('450x580')
     window.resizable(width=False, height=False)
 
     # Information header
@@ -647,26 +778,45 @@ def main():
     folder_label.grid(row=2, column=1, padx=5, pady=5)
     ek_entry = ttk.Combobox(window, textvariable=selected_engine, values=["Halo 2", "Halo 3", "Halo 3: ODST", "Halo Reach", "Halo 4", "Halo 2: AMP"], state="readonly")
     ek_entry.grid(row=3, column=1, padx=20, pady=5)
+    
+    # Use AllMaps checkbox
+    use_allmaps = tk.BooleanVar()
+    checkbox = tk.Checkbutton(window, text="Use AllMaps.txt", variable=use_allmaps, command=on_checkbox_click)
+    checkbox.grid(row=4, column=1, padx=5, pady=5)
+    
+    # AllMaps txt selection
+    allmaps_select_label = tk.Label(window, text="AllMaps.txt file:")
+    allmaps_select_label.grid(row=5, column=1, padx=5, pady=1)
+    allmaps_select_label["state"] = "disabled"
+    
+    allmaps_box = tk.Text(window, height=3, width=50)
+    allmaps_box.grid(row=6, column=1, padx=5, pady=1)
+    allmaps_box["state"] = "disabled"
+    
+    allmaps_button = tk.Button(window, text="Choose AllMaps.txt", command=lambda: open_txt_file(allmaps_box, compile_button))
+    allmaps_button.grid(row=7, column=1, padx=5, pady=1)
+    allmaps_button["state"] = "disabled"
 
     # Text box
     selected_label = tk.Label(window, text='Selected scenario paths:')
-    selected_label.grid(row=4, column=1, padx=5, pady=5)
+    selected_label.grid(row=8, column=1, padx=5, pady=5)
     text_box = tk.Text(window, wrap=tk.WORD, height=10, width=50)
     text_box.tag_configure("highlight", background="blue", foreground="white")
     text_box.bind("<1>", highlight_line)
-    text_box.grid(row=5, column=1, padx=20, pady=5)
+    text_box.grid(row=9, column=1, padx=20, pady=5)
+    text_box["state"] = "disabled"
     
     # Add button
     add_button = tk.Button(window, text="Add Scenario", command=lambda : open_scenario_file(text_box, ek_entry))
-    add_button.grid(row=6, column=1, padx=20, pady=5)
+    add_button.grid(row=10, column=1, padx=20, pady=5)
     
     # Remove button
     remove_button = tk.Button(window, text="Remove Selected Scenario", command=lambda : remove_selected_line(text_box))
-    remove_button.grid(row=7, column=1, padx=20, pady=5)
+    remove_button.grid(row=11, column=1, padx=20, pady=5)
     
     # Compile button
-    compile_button = tk.Button(window, text="Compile Scenarios!", command=lambda : compile_scenarios(text_box, ek_entry, window))
-    compile_button.grid(row=8, column=1, padx=20, pady=30)
+    compile_button = tk.Button(window, text="Compile Scenarios!", command=lambda : compile_scenarios(text_box, ek_entry, window, use_allmaps, compile_button))
+    compile_button.grid(row=12, column=1, padx=20, pady=30)
     
     window.mainloop()
 
