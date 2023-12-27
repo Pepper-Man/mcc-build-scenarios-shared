@@ -42,12 +42,12 @@ def h2(scenarios_list, window):
         total_stages += 1
     
     # Progress bar
-    window.geometry('550x620')
+    window.geometry('450x700')
     progress_label = tk.Label(window, text="Removing old data")
-    progress_label.grid(row=9, column=1, padx=20, pady=5)
+    progress_label.grid(row=13, column=1, padx=20, pady=5)
     progress_var = tk.DoubleVar()
     progress_bar = ttk.Progressbar(window, variable=progress_var, maximum=100)
-    progress_bar.grid(row=10, column=1, padx=20, pady=5, columnspan=3, sticky="ew")
+    progress_bar.grid(row=14, column=1, padx=20, pady=5, columnspan=3, sticky="ew")
     update_tasks(progress_var, stage_count, total_stages, window)
     stage_count += 1
     window.update()
@@ -131,12 +131,12 @@ def preH4(scenarios_list, engine, window):
         total_stages += 1
     
     # Progress bar
-    window.geometry('550x620')
+    window.geometry('450x700')
     progress_label = tk.Label(window, text="Creating cache_builder folder")
-    progress_label.grid(row=9, column=1, padx=20, pady=5)
+    progress_label.grid(row=13, column=1, padx=20, pady=5)
     progress_var = tk.DoubleVar()
     progress_bar = ttk.Progressbar(window, variable=progress_var, maximum=100)
-    progress_bar.grid(row=10, column=1, padx=20, pady=5, columnspan=3, sticky="ew")
+    progress_bar.grid(row=14, column=1, padx=20, pady=5, columnspan=3, sticky="ew")
     update_tasks(progress_var, stage_count, total_stages, window)
     stage_count += 1
     window.update()
@@ -377,12 +377,12 @@ def h4plus(selected_scens, engine, window):
         total_stages += 1
     
     # Progress bar
-    window.geometry('550x620')
+    window.geometry('450x700')
     progress_label = tk.Label(window, text="Creating cache_builder folder")
-    progress_label.grid(row=9, column=1, padx=20, pady=5)
+    progress_label.grid(row=13, column=1, padx=20, pady=5)
     progress_var = tk.DoubleVar()
     progress_bar = ttk.Progressbar(window, variable=progress_var, maximum=100)
-    progress_bar.grid(row=10, column=1, padx=20, pady=5, columnspan=3, sticky="ew")
+    progress_bar.grid(row=14, column=1, padx=20, pady=5, columnspan=3, sticky="ew")
     update_tasks(progress_var, stage_count, total_stages, window)
     stage_count += 1
     window.update()
@@ -595,6 +595,7 @@ def open_scenario_file(text_box, engine):
         print("Cancelled")
         
 def open_txt_file(allmaps_box, compile_button):
+    global allmaps_filepath
     
     def add_allmaps_path(path_to_add):
         allmaps_box["state"] = "normal"
@@ -626,7 +627,15 @@ def remove_selected_line(text_box):
         text_box["state"] = "disabled"
         print("Removed line:", line_content.strip())
         
-def compile_scenarios(text_box, engine, window, allmaps):
+def compile_scenarios(text_box, engine, window, allmaps, comp_button):
+    global allmaps_filepath
+    global h2ek_path
+    global h3ek_path
+    global odstek_path
+    global hrek_path
+    global h4ek_path
+    global h2amp_path
+    
     scenarios_list = []
     # Check that text box isn't empty
     if (text_box.get("1.0", "end-1c") == "") and not allmaps.get():
@@ -635,6 +644,7 @@ def compile_scenarios(text_box, engine, window, allmaps):
     else:
         if allmaps.get() == False: 
             scenarios_list = text_box.get("1.0", "end-1c").splitlines()
+            engine_type = engine.get()
         else:
             # Grab scenarios list from txt
             print("Open allmaps.txt")
@@ -654,31 +664,50 @@ def compile_scenarios(text_box, engine, window, allmaps):
                 scenarios_list.append(map_path)
                 
             # Set EK path
-            path = os.path.dirname(os.path.abspath(__file__))
-            if "H2EK" in path:
-                h2ek_path = path
-            elif "H3EK" in path:
-                h3ek_path = path
-            elif "H3ODSTEK" in path:
-                odstek_path = path
-            elif "HREK" in path:
-                hrek_path = path
-            elif "H4EK" in path:
-                h4ek_path = path
-            elif "H2AMPEK" in path:
-                h2amp_path = path
-            
+            if "H2EK" in allmaps_filepath:
+                print("H2 allmaps.txt")
+                index = allmaps_filepath.find("H2EK")
+                h2ek_path = allmaps_filepath[:index + len("H2EK")]
+                engine_type = "Halo 2"
+            elif "H3EK" in allmaps_filepath:
+                print("H3 allmaps.txt")
+                index = allmaps_filepath.find("H3EK")
+                h3ek_path = allmaps_filepath[:index + len("H3EK")]
+                engine_type = "Halo 3"
+            elif "H3ODSTEK" in allmaps_filepath:
+                print("ODST allmaps.txt")
+                index = allmaps_filepath.find("H3ODSTEK")
+                odstek_path = allmaps_filepath[:index + len("H3ODSTEK")]
+                engine_type = "Halo 3: ODST"
+            elif "HREK" in allmaps_filepath:
+                print("HR allmaps.txt")
+                index = allmaps_filepath.find("HREK")
+                hrek_path = allmaps_filepath[:index + len("HREK")]
+                engine_type = "Halo Reach"
+            elif "H4EK" in allmaps_filepath:
+                print("H4 allmaps.txt")
+                index = allmaps_filepath.find("H4EK")
+                h4ek_path = allmaps_filepath[:index + len("H4EK")]
+                engine_type = "Halo 4"
+            elif "H2AMPEK" in allmaps_filepath:
+                print("H2A allmaps.txt")
+                index = allmaps_filepath.find("H2AMPEK")
+                h2amp_path = allmaps_filepath[:index + len("H2AMPEK")]
+                engine_type = "Halo 2: AMP"
+
         
         print("Compiling scenarios")
-        if engine.get() in ["Halo 3", "Halo 3: ODST", "Halo Reach"]:
-            preH4(scenarios_list, engine.get(), window)
-        elif engine.get() == "Halo 2":
+        if engine_type in ["Halo 3", "Halo 3: ODST", "Halo Reach"]:
+            preH4(scenarios_list, engine_type, window)
+        elif engine_type == "Halo 2":
             h2(scenarios_list, window)
-        elif engine.get() in ["Halo 4", "Halo 2: AMP"]:
-            h4plus(scenarios_list, engine.get(), window)
+        elif engine_type in ["Halo 4", "Halo 2: AMP"]:
+            h4plus(scenarios_list, engine_type, window)
         else:
             print("Something else has gone horrifically wrong")
             exit(-2)
+        
+        comp_button["state"] = "normal"
         
         
 def main():
@@ -772,7 +801,7 @@ def main():
     remove_button.grid(row=11, column=1, padx=20, pady=5)
     
     # Compile button
-    compile_button = tk.Button(window, text="Compile Scenarios!", command=lambda : compile_scenarios(text_box, ek_entry, window, use_allmaps))
+    compile_button = tk.Button(window, text="Compile Scenarios!", command=lambda : compile_scenarios(text_box, ek_entry, window, use_allmaps, compile_button))
     compile_button.grid(row=12, column=1, padx=20, pady=30)
     
     window.mainloop()
