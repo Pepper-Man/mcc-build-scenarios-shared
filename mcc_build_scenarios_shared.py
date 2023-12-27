@@ -280,7 +280,7 @@ def preH4(scenarios_list, engine, window):
         for map in scenarios_list:
             map_name = os.path.splitext(os.path.basename(map))[0]
             prop_list.write(
-                f"..\cache_builder\\to_optimize\\{map_name}.cache_file_resource_gestalt\n")
+                f"..\\cache_builder\\to_optimize\\{map_name}.cache_file_resource_gestalt\n")
 
     update_tasks(progress_var, stage_count, total_stages, window)
     stage_count += 1
