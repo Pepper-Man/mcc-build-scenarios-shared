@@ -661,7 +661,14 @@ def compile_scenarios(text_box, engine, window, allmaps, comp_button):
                 print("Unknown file error: " + e)
                
             for map_path in maps:
-                scenarios_list.append(map_path)
+                # Check that scenario is valid/exists
+                full_scen_path = os.path.normpath(allmaps_filepath.replace("AllMaps.txt", "") + "/tags/" + map_path + ".scenario")
+                if os.path.exists(full_scen_path):
+                    scenarios_list.append(map_path)
+                else:
+                    print("Scenario path " + map_path + " is invalid")
+                    messagebox.showerror("Error", "The following scenario path cannot be found. Please check the filepaths in AllMaps.txt for errors:\n" + full_scen_path)
+                    return
                 
             # Set EK path
             if "H2EK" in allmaps_filepath:
