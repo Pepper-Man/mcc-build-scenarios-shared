@@ -613,9 +613,16 @@ def open_txt_file(allmaps_box, compile_button):
         print("User didn't select txt")
         compile_button["state"] = "disabled"
     else:
-        allmaps_filepath = allmaps_path
-        add_allmaps_path(allmaps_filepath)
-        compile_button["state"] = "normal"
+        valid_eks = ["H2EK", "H3EK", "H3ODSTEK", "HREK", "H4EK", "H2AMPEK"]
+        if any (substring in allmaps_path for substring in valid_eks):
+            print("AllMaps.txt is inside valid EK")
+            allmaps_filepath = allmaps_path
+            add_allmaps_path(allmaps_filepath)
+            compile_button["state"] = "normal"
+        else:
+            # Txt is not in any known EK
+            messagebox.showerror("Error", "AllMaps.txt not located in editing kit root folder.")
+            return
 
 def remove_selected_line(text_box):
     selected_index = text_box.tag_ranges("highlight")
