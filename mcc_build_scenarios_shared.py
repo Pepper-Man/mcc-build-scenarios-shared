@@ -605,7 +605,7 @@ def open_txt_file(allmaps_box, compile_button):
         
     allmaps_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")], initialfile="AllMaps.txt")
     # Check if the selected file is "AllMaps.txt"
-    if allmaps_path and not allmaps_path.endswith("AllMaps.txt"):
+    if allmaps_path and not any(allmaps_path.lower().endswith(ext.lower()) for ext in ["AllMaps.txt", "AllMapsSP.txt", "AllMapsMP.txt"]):
         messagebox.showerror("Error", "File is not an \"AllMaps.txt\" file")
         compile_button["state"] = "disabled"
         return
