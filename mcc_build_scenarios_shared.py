@@ -669,7 +669,7 @@ def compile_scenarios(text_box, engine, window, allmaps, comp_button):
                
             for map_path in maps:
                 # Check that scenario is valid/exists
-                full_scen_path = os.path.normpath(allmaps_filepath.replace("AllMaps.txt", "") + "/tags/" + map_path + ".scenario")
+                full_scen_path = os.path.normpath(os.path.dirname(allmaps_filepath) + "/tags/" + map_path + ".scenario")
                 if os.path.exists(full_scen_path):
                     scenarios_list.append(map_path)
                 else:
