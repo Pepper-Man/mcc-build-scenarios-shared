@@ -35,6 +35,6 @@ Currently supports ALL titles in MCC, with the exception of CE.
 * Be sure to check the folder structure for each engine. For example, H2 uses "your_mod_folder\halo2\h2_maps_win64_dx11".
 * These shared files will get automatically uploaded via Excession and used by your mod, with no further setup needed.
 
-# Additional Notes
+# IMPORTANT Additional Notes
 * This tool relies on your editing kit folder name to function correctly, to avoid having to manually specify each of their locations. If you have changed the name of your editing kit folder(s), this tool will break.
 * Halo 2 shared maps are now supported by MCC as of the September 19th 2023 update. The .map and .dat files are required (put these into your mod folder's "h2_maps_win64_dx11" folder), the .bin files are not required (thanks to Arttumiro for testing this).

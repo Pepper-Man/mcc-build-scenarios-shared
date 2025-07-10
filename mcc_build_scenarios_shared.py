@@ -43,7 +43,7 @@ def h2(scenarios_list, window):
     
     # Progress bar
     window.geometry('450x700')
-    progress_label = tk.Label(window, text="Removing old data")
+    progress_label = tk.Label(window, text="Removing stale data")
     progress_label.grid(row=13, column=1, padx=20, pady=5)
     progress_var = tk.DoubleVar()
     progress_bar = ttk.Progressbar(window, variable=progress_var, maximum=100)
@@ -52,7 +52,7 @@ def h2(scenarios_list, window):
     stage_count += 1
     window.update()
     
-    print("Halo 2")
+    print("Engine: Halo 2")
     
     platform = "win64"
     no_extra_prints = "-batch"
@@ -65,7 +65,7 @@ def h2(scenarios_list, window):
     maps_folder = os.path.join(engine_path, "h2_maps_win64_dx11")
     
     # 1 - Delete everything from maps to avoid stale data corrupting the process
-    print("Delete everything from maps to avoid stale data corrupting the process")
+    print("Deleting old .map files...")
     shutil.rmtree(maps_folder, ignore_errors=True)
     update_tasks(progress_var, stage_count, total_stages, window)
     stage_count += 1
@@ -73,7 +73,7 @@ def h2(scenarios_list, window):
     window.update()
         
     # 2 - Generate mainmenu.map
-    print("Generate mainmenu.map")
+    print("Done.\nGenerating \"mainmenu.map\"...")
     argument_list = [no_extra_prints, "build-cache-file", "scenarios\\ui\\mainmenu\\mainmenu", platform, build_flags]
     run_executable_in_another_directory(tool_exe, argument_list)
     update_tasks(progress_var, stage_count, total_stages, window)
@@ -82,7 +82,7 @@ def h2(scenarios_list, window):
     window.update()
     
     # 3 - Generate shared.map
-    print("Generate shared.map")
+    print("Done.\nGenerating \"shared.map\"...")
     argument_list = [no_extra_prints, "build-cache-file", "scenarios\\shared\\shared", platform, build_flags]
     run_executable_in_another_directory(tool_exe, argument_list)
     update_tasks(progress_var, stage_count, total_stages, window)
@@ -91,7 +91,7 @@ def h2(scenarios_list, window):
     window.update()
     
     # 4 - Generate single_player_shared.map
-    print("Generate single_player_shared.map")
+    print("Done.\nGenerating \"single_player_shared.map\"...")
     argument_list = [no_extra_prints, "build-cache-file", "scenarios\\shared\\single_player_shared", platform, build_flags]
     run_executable_in_another_directory(tool_exe, argument_list)
     update_tasks(progress_var, stage_count, total_stages, window)
@@ -99,7 +99,7 @@ def h2(scenarios_list, window):
     window.update()
     
     # 5 - Generate cache files
-    print("Generate cache files")
+    print("Done.\nGenerating level cache files...")
     for map in scenarios_list:
         progress_label.config(text="Building " + os.path.basename(map) + ".map")
         window.update()
@@ -111,7 +111,8 @@ def h2(scenarios_list, window):
         run_executable_in_another_directory(tool_exe, argument_list)
         update_tasks(progress_var, stage_count, total_stages, window)
         stage_count += 1
-        
+    
+    print("Done.")   
     progress_label.config(text="Finished!")
     window.update()
         
@@ -143,16 +144,14 @@ def preH4(scenarios_list, engine, window):
     
     # Engine type
     if engine == "Halo 3":
-        print("Halo 3")
         engine_path = h3ek_path
     if engine == "Halo 3: ODST":
-        print("ODST")
         engine_path = odstek_path
         total_stages += 1 # ODST has one extra stage
     if engine == "Halo Reach":
-        print("Reach")
         engine_path = hrek_path
     
+    print("Engine: " + engine)
     short_name = os.path.basename(engine_path)
     tool_exe = os.path.join(engine_path, "tool.exe")
     map_languages = os.path.join(engine_path, "AllLanguages.txt")
@@ -172,12 +171,12 @@ def preH4(scenarios_list, engine, window):
     USE_FMOD_DATA = "use-fmod-data" if platform_is_pc else ""
 
     # Create the cache builder folder if necessary
-    print("Create the cache builder folder if necessary")
+    print("Creating cache builder folder (if necessary)...")
     cache_builder_folder = os.path.join(engine_path, "cache_builder")
     os.makedirs(cache_builder_folder, exist_ok=True)
 
     # 1 - Delete everything from cache_builder to avoid stale data corrupting the process
-    print("Delete everything from cache_builder to avoid stale data corrupting the process")
+    print("Done.\nClearing cache_builder folder to avoid stale data corrupting the process...")
     shutil.rmtree(cache_builder_folder, ignore_errors=True)
     update_tasks(progress_var, stage_count, total_stages, window)
     stage_count += 1
@@ -185,7 +184,7 @@ def preH4(scenarios_list, engine, window):
     window.update()
 
     # 2 - Delete maps and RSA manifests from the maps folder
-    print("Delete maps and RSA manifests from the maps folder")
+    print("Done.\nDeleting old maps and RSA manifests from the maps folder...")
     for file in os.listdir(maps_folder):
         if file.endswith(".map") or file.startswith("security"):
             os.remove(os.path.join(maps_folder, file))
@@ -194,13 +193,13 @@ def preH4(scenarios_list, engine, window):
     window.update()
 
     # 3 Build sound index for all maps
-    print("Build sound index for all maps")
+    print("Done.\nBuilding sound index for all maps...")
 
     # ODST specific command:
     if engine == "Halo 3: ODST":
         progress_label.config(text="Running ODST-specific sound command - this one takes a while")
         window.update()
-        print("Running build-cache-file-cache-sounds-index. This can appear to freeze for a while, please be patient.")
+        print("Running build-cache-file-cache-sounds-index. This can appear to freeze for a while, please be patient...")
         run_executable_in_another_directory(tool_exe, ["build-cache-file-cache-sounds-index", "shared"])
         
         update_tasks(progress_var, stage_count, total_stages, window)
@@ -224,7 +223,7 @@ def preH4(scenarios_list, engine, window):
     window.update()
 
     # 4 Build sound cache files
-    print("Build sound cache files")
+    print("Done.\nBuilding sound cache files...")
     language_files = [LANGUAGE] if platform_is_pc else [
         line.strip() for line in open(map_languages, "r")]
 
@@ -238,7 +237,7 @@ def preH4(scenarios_list, engine, window):
     window.update()
 
     # 5 - Generate full shared.map
-    print("Generate full shared.map")
+    print("Done.\nGenerating \"shared.map\"...")
     argument_list = ["build-cache-file-cache-shared-first", target_platform, LANGUAGE, VERSION, "optimizable", SHARED_SOUNDS, USE_FMOD_DATA, DEDICATED_SERVER]
     run_executable_in_another_directory(tool_exe, argument_list)
     
@@ -248,7 +247,7 @@ def preH4(scenarios_list, engine, window):
     window.update()
 
     # 6 - Generate full campaign.map
-    print("Generate full campaign.map")
+    print("Done.\nGenerating \"campaign.map\"...")
     argument_list = ["build-cache-file-cache-campaign-second", target_platform, LANGUAGE, VERSION, "optimizable", USE_FMOD_DATA, DEDICATED_SERVER]
     run_executable_in_another_directory(tool_exe, argument_list)
     
@@ -258,7 +257,7 @@ def preH4(scenarios_list, engine, window):
     window.update()
 
     # 7 - Generate intermediate files for levels
-    print("Generate intermediate files for levels")
+    print("Done.\nGenerating intermediate files for levels...")
 
     for map in scenarios_list:
         scenario_relative_path = os.path.join(
@@ -275,7 +274,7 @@ def preH4(scenarios_list, engine, window):
     window.update()
 
     # 8 - Create dvd_prop_list.txt
-    print("Create prop list")
+    print("Done.\nCreating prop list...")
     with open(dvd_prop_list, "w") as prop_list:
         for map in scenarios_list:
             map_name = os.path.splitext(os.path.basename(map))[0]
@@ -288,7 +287,7 @@ def preH4(scenarios_list, engine, window):
     window.update()
     
     # 9 - Copy shared.map and campaign.map to optimize directory
-    print("Copy shared.map and campaign.map to optimize directory")
+    print("Done.\nCopying \"shared.map\" and \"campaign.map\" to optimization directory...")
     dest_folder = os.path.join(cache_builder_folder, "to_optimize")
     os.makedirs(dest_folder, exist_ok=True)
 
@@ -310,7 +309,7 @@ def preH4(scenarios_list, engine, window):
     window.update()
 
     # 10 - Generate shared intermediate files
-    print("Generate shared intermediate files")
+    print("Done.\nGenerating shared intermediate files...")
     argument_list = ["generate-final-shared-layout", dvd_prop_list, target_platform, DEDICATED_SERVER]
     run_executable_in_another_directory(tool_exe, argument_list)
     
@@ -319,7 +318,7 @@ def preH4(scenarios_list, engine, window):
     window.update()
 
     # 11 - Generate optimized level cache files
-    print("Generate optimized level cache files")
+    print("Done.\nGenerating optimized level cache files...")
     for map in scenarios_list:
         progress_label.config(text="Building " + os.path.basename(map) + ".map")
         window.update()
@@ -338,7 +337,7 @@ def preH4(scenarios_list, engine, window):
     window.update()
 
     # 12 - Generate optimized shared.map
-    print("Generate optimized shared.map")
+    print("Done.\nGenerating optimized \"shared.map\"...")
     argument_list = ["build-cache-file-link", "shared", target_platform, USE_FMOD_DATA, DEDICATED_SERVER]
     run_executable_in_another_directory(tool_exe, argument_list)
     
@@ -348,7 +347,7 @@ def preH4(scenarios_list, engine, window):
     window.update()
 
     # 13 - Generate optimized campaign.map
-    print("Generate optimized campaign.map")
+    print("Done.\nGenerating optimized \"campaign.map\"...")
     argument_list = ["build-cache-file-link", "campaign", target_platform, USE_FMOD_DATA, DEDICATED_SERVER]
     run_executable_in_another_directory(tool_exe, argument_list)
     
@@ -388,16 +387,16 @@ def h4plus(selected_scens, engine, window):
     window.update()
     
     if engine == "Halo 4":
-        print("Halo 4")
         engine_path = h4ek_path
     if engine == "Halo 2: AMP":
-        print("H2AMP")
         engine_path = h2amp_path
     
+    print("Engine: " + engine)
     short_name = os.path.basename(engine_path)
     tool_path = os.path.join(engine_path, "tool.exe")
     
     # 1 Delete old cache_builder folder, remove existing .map files
+    print("Deleting old cache_builder folder and .map files...")
     shutil.rmtree(os.path.join(engine_path, "cache_builder"), ignore_errors=True)
     files_to_delete = os.path.join(engine_path, "maps", "*.map")
     for f in glob.glob(files_to_delete):
@@ -409,6 +408,7 @@ def h4plus(selected_scens, engine, window):
     window.update()
     
     # 2 Build shared map
+    print("Done.\nGenerating \"shared.map\"...")
     run_executable_in_another_directory(tool_path, ["build-cache-file-cache-shared-first", "english", "0", "pc"])
     
     update_tasks(progress_var, stage_count, total_stages, window)
@@ -417,6 +417,7 @@ def h4plus(selected_scens, engine, window):
     window.update()
     
     # 3 Build campaign map
+    print("Done.\nGenerating \"campaign.map\"...")
     run_executable_in_another_directory(tool_path, ["build-cache-file-cache-campaign-second", "english", "0", "pc"])
     
     update_tasks(progress_var, stage_count, total_stages, window)
@@ -424,6 +425,7 @@ def h4plus(selected_scens, engine, window):
     window.update()
     
     # 4 Build scenarios
+    print("Done.\nGenerating unoptimized level files...")
     for scenario in selected_scens:
         progress_label.config(text="Building " + os.path.basename(scenario) + ".map")
         window.update()
@@ -437,6 +439,7 @@ def h4plus(selected_scens, engine, window):
     window.update()
     
     # 5 Copy maps
+    print("Done.\nCopying \"shared.map\" and \"campaign.map\" to optimization folder...")
     shutil.copy(os.path.join(engine_path, "maps", "shared.map"), os.path.join(engine_path, "cache_builder", "to_optimize"))
     if os.path.exists(os.path.join(engine_path, "maps", "campaign.map")):
         shutil.copy(os.path.join(engine_path, "maps", "campaign.map"), os.path.join(engine_path, "cache_builder", "to_optimize"))
@@ -447,6 +450,7 @@ def h4plus(selected_scens, engine, window):
     window.update()
     
     # 6 Remove old dvd_prop_list, build new
+    print("Done.\nDeleting old prop list, generating new one...")
     dvd_prop_list = os.path.join(engine_path, "built_dvd_prop_list.txt")
     if os.path.exists(dvd_prop_list):
         os.remove(dvd_prop_list)
@@ -461,6 +465,7 @@ def h4plus(selected_scens, engine, window):
     window.update()
     
     # 7 Build the final sharing layout file
+    print("Done.\nGenerating optimized shared files...")
     run_executable_in_another_directory(tool_path, ["generate-final-shared-layout", dvd_prop_list, "pc"])
     
     update_tasks(progress_var, stage_count, total_stages, window)
@@ -469,6 +474,7 @@ def h4plus(selected_scens, engine, window):
     window.update()
     
     # 8 Finalise maps
+    print("Done.\nGenerating optimized level cache files...")
     for filename in glob.glob(os.path.join(engine_path, "cache_builder\\to_optimize\\*.cache_file_resource_gestalt")):
         generate_new_layout(filename, tool_path)
         
@@ -478,7 +484,9 @@ def h4plus(selected_scens, engine, window):
     window.update()
     
     # 9 And relink
+    print("Done.\nLinking \"shared.map\"...")
     run_executable_in_another_directory(tool_path, ["build-cache-file-link", "shared", "pc"])
+    print("Done.\nLinking \"campaign.map\"...")
     run_executable_in_another_directory(tool_path, ["build-cache-file-link", "campaign", "pc"])
     
     progress_label.config(text="Finished!")
@@ -710,7 +718,7 @@ def compile_scenarios(text_box, engine, window, allmaps, comp_button):
                 engine_type = "Halo 2: AMP"
 
         
-        print("Compiling scenarios")
+        print("Compiling scenarios...")
         if engine_type in ["Halo 3", "Halo 3: ODST", "Halo Reach"]:
             preH4(scenarios_list, engine_type, window)
         elif engine_type == "Halo 2":
@@ -771,7 +779,7 @@ def main():
 
     # Get engine version
     style = ttk.Style()
-    style.theme_use('vista')
+    style.theme_use('clam')
     selected_engine = tk.StringVar(window)
     selected_engine.set("Halo 3") # Default to H3
     folder_label = tk.Label(window, text='Select engine version:')
